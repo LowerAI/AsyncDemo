@@ -3,17 +3,25 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    class Program5
+    /// <summary>
+    /// 例子signaling:使用信号来实现线程的阻塞和重启
+    /// </summary>
+    class Program17
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            for (int i = 0; i < 5; i++)
-            {
-                Console.WriteLine("Sleep for 2 seconds.");
-                Thread.Sleep(2000);
-            }
+            var signal = new ManualResetEvent(false);
 
-            Console.WriteLine("Main thread exits.");
+            new Thread(() =>
+            {
+                Console.WriteLine("Waiting for signal ... ");
+                signal.WaitOne();
+                signal.Dispose();
+                Console.WriteLine("Got signal!");
+            }).Start();
+
+            Thread.Sleep(3000);
+            signal.Set();
         }
     }
 }
