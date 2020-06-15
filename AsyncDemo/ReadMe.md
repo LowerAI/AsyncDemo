@@ -150,3 +150,11 @@
 + Invoke执行相同的操作，但随后会及进行阻塞，直到UI线程读取并处理消息。
   + 因此，Inovke允许您从方法中获取返回值。
   + 如果不需要返回值，BeginInovke/RunAsync更可取，因为他们不会阻塞调用方，也不会引入思索的可能性
+
+# Synchronization Contexts 同步上下文
++ 在System.ComponmentModel下有一个抽象类：SynchronizationContext，它使得Thread Marshaling得到泛化。
++ 针对移动、桌面(WPF，UWP，WinForm)等富客户端应用的API，他们都定义和实例化了SynchronizationContext的子类
+  + 可以通过静态属性SynchronizationContext.Current来获得(当运行在UI线程时)
+  + 捕获该属性让你可以在稍后的时候从worker线程向UI线程发送数据(例子)
+  + 调用Post就相当于调用Dispatch或Control上面的BeginInovke方法
+  + 还有一个Send方法，它等价于Inovke方法
