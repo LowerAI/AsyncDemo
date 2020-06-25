@@ -1,27 +1,20 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AsyncDemo
 {
     /// <summary>
-    /// 例子signaling:使用信号来实现线程的阻塞和重启
+    /// 例子longRunning
     /// </summary>
-    class Program17
+    class Program20
     {
         static void Main(string[] args)
         {
-            var signal = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                Console.WriteLine("Waiting for signal ... ");
-                signal.WaitOne();
-                signal.Dispose();
-                Console.WriteLine("Got signal!");
-            }).Start();
-
-            Thread.Sleep(3000);
-            signal.Set();
+            Task task = Task.Factory.StartNew(() => {
+                Thread.Sleep(3000);
+                Console.WriteLine("Foo");
+            }, TaskCreationOptions.LongRunning);
         }
     }
 }

@@ -198,3 +198,43 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + 如果下面两点能够满足，那么CLR的策略将发挥出最佳效果：
   + 工作项大多是短时间运行的(<250毫秒，或者理想情况下<100毫秒)，因此CLR有很多机会进行测量和调整。
   + 大部分时间都被阻塞的工作项不会主宰线程池
+
+# Thread的问题
++ 线程(Thread)是用来创建并发(concurrency)的一种低级别工具，它有一些限制，尤其是：
+  + 虽然开始线程的时候可以方便的传入数据，但是当Join的时候，很难从线程获得返回值。
+    + 可能需要设置一些共享字段。
+    + 如果操作抛出异常，捕获和传播该异常都很麻烦。
+  + 无法告诉线程在结束时开始做另外的工作，你必须进行Join操作(在进程中阻塞当前的线程)
++ 很难使用较小的并发(concurrent)来组建大型的并发
++ 导致了对手动同步的更大依赖以及随之而来的问题
+
+# Task Class
++ Task类可以很好的解决上述问题
++ Task是一个相对高级的抽象：它代表了一个并发操作(concurrent)
+  + 该操作可能由Thread支持，或不由Thread支持
++ Task可以使用线程池来减少启动延迟
++ 使用TaskCompletionSource，Task可以利用回调的方式吗，在等待I/O绑定操作时完全避免线程。
+
+# 开始一个Task Task.Run
++ Task类在System.Threading.Tasks命名空间下。
++ 开始一个Task最简单的办法就是使用Task.Run(.NET 4.5, 4.0的时候是Task.Factory.StartNew)这个静态方法：
+  + 传入一个Action委托即可(例子task)
++ Task默认使用线程池，也就是后台线程：
+  + 当主线程结束时，你创建的所有tasks都会结束。(例子task)
++ Task.Run返回一个Task对象，可以使用它来监视其过程
+  + 在Task.Run之后，我们没有调用Start，因为该方法创建的时“热”任务(hot task)
+    + 可以通过Task的构造函数创建“冷”任务(cold task)，但是很少这样做
+  + 可以通过Task的Status属性来跟踪task的执行状态。
+
+# Wait 等待
++ 调用task.Wait方法会进行阻塞直到操作完成
+  + 相当于调用thread上的Join方法
+  + (例子wait)
++ Wait也可以让你指定一个超时时间和一个取消令牌提前结束等待。
+
+# Long-runnning tasks 长时间运行的任务
++ 默认情况下，CLR在线程池中运行Task，这非常适合短时间运行的Compute-Bound类工作。
++ 针对长时间运行的任务或者阻塞操作(例如前面的例子)，你可以不采用线程池(例子longRunning)
++ 如果同时运行多个long-running tasks(尤其时其中有处于阻塞状态的)，那么性能会受很大影响，这时有比TaskCreationOptions.LongRunning更好的办法：
+  + 如果任务时IO-Bounds，TaskCompletionSource和异步函数可以让你用回调(Coninuations)代替线程来实现并发。
+  + 如果任务时Compute-Bound，生产者/消费者队列允许你对任务的并发性进行限流，避免把其他线程和进程饿死。
