@@ -1,20 +1,23 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncDemo
 {
     /// <summary>
-    /// 例子longRunning
+    /// 例子prime
     /// </summary>
-    class Program20
+    class Program22
     {
         static void Main(string[] args)
         {
-            Task task = Task.Factory.StartNew(() => {
-                Thread.Sleep(3000);
-                Console.WriteLine("Foo");
-            }, TaskCreationOptions.LongRunning);
+            Task<int> primeNumberTask = Task.Run(() =>
+                Enumerable.Range(2, 3000000).Count(n => Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % i > 0))
+            );
+
+            Console.WriteLine("Task running...");
+            Console.WriteLine("The answer is " + primeNumberTask.Result);
         }
     }
 }

@@ -238,3 +238,12 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + 如果同时运行多个long-running tasks(尤其时其中有处于阻塞状态的)，那么性能会受很大影响，这时有比TaskCreationOptions.LongRunning更好的办法：
   + 如果任务时IO-Bounds，TaskCompletionSource和异步函数可以让你用回调(Coninuations)代替线程来实现并发。
   + 如果任务时Compute-Bound，生产者/消费者队列允许你对任务的并发性进行限流，避免把其他线程和进程饿死。
+
+# Task的返回值
++ Task有一个泛型子类叫做Task<TResult>，它允许发出一个返回值。
++ 使用Func<TResult>委托或兼容的Lambda表达式来调用Task.Run就可以得到Task<TResult>。
++ 随后，可以通过Result属性来获得返回的结果。
+  + 如果这个task还没有完成操作，访问Result属性会阻塞该线程直到该task完成操作。
+  + (例子tresult, prime)
++ Task<TResult>可以看作是一种所谓的“未来许诺”(future、promise)，在它里面包裹着一个Result，在稍后的时候就会变得可用。
++ 在CTP版本的时候，Task<TResult>实际上叫做Future<TResult>
