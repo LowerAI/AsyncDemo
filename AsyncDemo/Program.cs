@@ -6,18 +6,33 @@ using System.Threading.Tasks;
 namespace AsyncDemo
 {
     /// <summary>
-    /// 例子prime
+    /// 例子exception
     /// </summary>
-    class Program22
+    class Program23
     {
         static void Main(string[] args)
         {
-            Task<int> primeNumberTask = Task.Run(() =>
-                Enumerable.Range(2, 3000000).Count(n => Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % i > 0))
-            );
-
-            Console.WriteLine("Task running...");
-            Console.WriteLine("The answer is " + primeNumberTask.Result);
+            Task task = Task.Run(() => { throw null; });
+            try
+            {
+                task.Wait();
+            }
+            catch (AggregateException aex)
+            {// VS2019更改了调试状态时异常的抛出策略：先直接在异常发生点抛出，如果继续才会跳转到catch块中
+                if (aex.InnerException is NullReferenceException)
+                {
+                    Console.WriteLine("Null");
+                }
+                else
+                {
+                    throw;
+                }
+                //aex.Handle(eachException =>
+                //{
+                //    Console.WriteLine(eachException.Message);
+                //    return true;
+                //});
+            }
         }
     }
 }

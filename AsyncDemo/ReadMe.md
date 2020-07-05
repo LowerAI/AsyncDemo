@@ -247,3 +247,26 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
   + (例子tresult, prime)
 + Task<TResult>可以看作是一种所谓的“未来许诺”(future、promise)，在它里面包裹着一个Result，在稍后的时候就会变得可用。
 + 在CTP版本的时候，Task<TResult>实际上叫做Future<TResult>
+
+# Task的异常
++ 与Thread不一样，Task可以很方便的传播异常
+  + 如果你的task里面抛出了一个未处理的异常(故障)，那么该异常就会重新被抛出给：
+    + 调用了wait()的地方
+    + 访问了Task<TResult>的Result属性的地方。
+    + (例子exception)
++ CLR将异常包裹在AggregateException里，以便在并行编程场景中发挥良好的作用。
++ 无需抛出异常，通过Task的IsFaulted和IsCanceled属性也可以检测出Task是否发生了故障；
+  + 如果两个属性都返回false，那么没有错误发生。
+  + 如果IsCanceled为true，那么说明一个OperationCanceledException为该Task抛出了。
+  + 如果IsFaulted为true，那就说明另一个类型的异常被抛出了，而Exception属性也将指明错误。
+
+# 异常与“自治”的Task
++ 自治的，“设置完就不管了”的Task。就是指不通过调用Wait()方法、Result属性或continuation进行会合的任务。
++ 针对自治的Task，需要像Thread一样，显式的处理异常，避免发生“悄无声息的故障”。
++ 自治Task上未处理的异常为未观察到的异常。
+
+# 未观察到的异常
++ 可以通过全局的TaskScheduler.UnobservedTaskException来订阅未观察到的异常。
++ 关于什么是“未观察到的异常”，有一些细微的差别：
+  + 使用超时进行等待的Task，如果在超时后发生故障，那么它将会产生一个“未观察到的异常”。
+  + 在Task发生故障后，如果访问Task的Exception属性，那么该异常就被认为是“已观察到的”。
