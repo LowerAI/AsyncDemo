@@ -6,9 +6,9 @@ namespace AsyncDemo
     /// <summary>
     /// 甚至可以把整个逻辑都放在lambda里面
     /// </summary>
-    class Program13
+    internal class Program13
     {
-        static void Main13()
+        private static void Main13()
         {
             new Thread(() =>
             {

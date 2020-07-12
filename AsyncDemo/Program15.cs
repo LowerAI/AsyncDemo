@@ -4,9 +4,9 @@ using System.Threading;
 namespace AsyncDemo
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    class Program15
+    internal class Program15
     {
         //static void Main()
         //{
@@ -30,7 +30,7 @@ namespace AsyncDemo
             new Thread(Go).Start();
         }
 
-        static void Go()
+        private static void Go()
         {
             try
             {

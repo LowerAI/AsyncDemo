@@ -3,9 +3,9 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    class Program2
+    internal class Program2
     {
-        static Thread thread1, thread2;
+        private static Thread thread1, thread2;
 
         public static void Main2()
         {

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncDemo
@@ -8,9 +6,9 @@ namespace AsyncDemo
     /// <summary>
     /// 例子exception
     /// </summary>
-    class Program23
+    internal class Program23
     {
-        static void Main23(string[] args)
+        private static void Main23(string[] args)
         {
             Task task = Task.Run(() => { throw null; });
             try

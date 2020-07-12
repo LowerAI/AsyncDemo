@@ -4,11 +4,11 @@ using System.Threading;
 namespace AsyncDemo
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    class Program14
+    internal class Program14
     {
-        static void Main14()
+        private static void Main14()
         {
             for (int i = 0; i < 10; i++)
             {

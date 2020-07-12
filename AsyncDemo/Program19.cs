@@ -7,11 +7,12 @@ namespace AsyncDemo
     /// <summary>
     /// 例子wait
     /// </summary>
-    class Program19
+    internal class Program19
     {
-        static void Main19(string[] args)
+        private static void Main19(string[] args)
         {
-            Task task = Task.Run(() => {
+            Task task = Task.Run(() =>
+            {
                 Thread.Sleep(3000);
                 Console.WriteLine("Foo");
             });

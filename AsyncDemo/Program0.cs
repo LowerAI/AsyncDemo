@@ -3,9 +3,9 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    class Program0
+    internal class Program0
     {
-        static void Main0(string[] args)
+        private static void Main0(string[] args)
         {
             Thread t = new Thread(WriteY); // 开辟了一个新的线程 Thread
             t.Name = "Y Thread ...";
@@ -17,7 +17,7 @@ namespace AsyncDemo
             }
         }
 
-        static void WriteY()
+        private static void WriteY()
         {
             for (int i = 0; i < 1000; i++)
             {

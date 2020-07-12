@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncDemo
@@ -8,9 +7,9 @@ namespace AsyncDemo
     /// <summary>
     /// 例子configureAwait
     /// </summary>
-    class Program25
+    internal class Program25
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Task<int> primeNumberTask = Task.Run(() => Enumerable.Range(2, 3000000).Count(n => Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % 1 > 0)));
 

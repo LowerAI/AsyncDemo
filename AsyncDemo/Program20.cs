@@ -7,11 +7,12 @@ namespace AsyncDemo
     /// <summary>
     /// 例子longRunning
     /// </summary>
-    class Program20
+    internal class Program20
     {
-        static void Main20(string[] args)
+        private static void Main20(string[] args)
         {
-            Task task = Task.Factory.StartNew(() => {
+            Task task = Task.Factory.StartNew(() =>
+            {
                 Thread.Sleep(3000);
                 Console.WriteLine("Foo");
             }, TaskCreationOptions.LongRunning);

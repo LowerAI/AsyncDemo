@@ -6,9 +6,9 @@ namespace AsyncDemo
     /// <summary>
     /// 当前线程自身超时
     /// </summary>
-    class Program4
+    internal class Program4
     {
-        static TimeSpan waitTime = new TimeSpan(0, 0, 1);
+        private static TimeSpan waitTime = new TimeSpan(0, 0, 1);
 
         public static void Main4()
         {
@@ -25,7 +25,7 @@ namespace AsyncDemo
             }
         }
 
-        static void Work()
+        private static void Work()
         {
             Thread.Sleep(waitTime);// 暂停当前线程病等待waitTime这么多时间
         }

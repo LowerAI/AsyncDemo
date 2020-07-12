@@ -6,9 +6,9 @@ namespace AsyncDemo
     /// <summary>
     /// 例子signaling:使用信号来实现线程的阻塞和重启
     /// </summary>
-    class Program17
+    internal class Program17
     {
-        static void Main17(string[] args)
+        private static void Main17(string[] args)
         {
             var signal = new ManualResetEvent(false);
 

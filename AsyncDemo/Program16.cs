@@ -6,9 +6,9 @@ namespace AsyncDemo
     /// <summary>
     /// 后台线程
     /// </summary>
-    class Program16
+    internal class Program16
     {
-        static void Main16(string[] args)
+        private static void Main16(string[] args)
         {
             Thread worker = new Thread(() => Console.ReadLine());
             if (args.Length > 0)

@@ -3,9 +3,9 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    class Program1
+    internal class Program1
     {
-        static void Main1(string[] args)
+        private static void Main1(string[] args)
         {
             Thread t = new Thread(Go);
             t.Start();
@@ -13,7 +13,7 @@ namespace AsyncDemo
             Console.WriteLine("Thread t has ended!");
         }
 
-        static void Go()
+        private static void Go()
         {
             for (int i = 0; i < 1000; i++)
             {
