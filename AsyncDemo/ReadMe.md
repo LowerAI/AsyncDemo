@@ -270,3 +270,41 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + 关于什么是“未观察到的异常”，有一些细微的差别：
   + 使用超时进行等待的Task，如果在超时后发生故障，那么它将会产生一个“未观察到的异常”。
   + 在Task发生故障后，如果访问Task的Exception属性，那么该异常就被认为是“已观察到的”。
+
+# Continuation 继续/延续
++ 一个Continuation会对Task说：“当你结束的时候，继续再做点其它的事”
++ Continuation通常事通过回调的方式实现的
+  + 当操作一结束，就开始执行
+  + (例子prime)
+    + 在Task上调用GetAwaiter会返沪一个awaiter对象
+      + 它的OnCompleted方法会告诉之前的task，“当你结束/发生故障的时候要执行委托”
+    + 可以将Continuation附加到已经结束的task上面，此时Continuation将会被安排立即执行。
+
+# awaiter
++ 任何可以暴露下列两个方法和一个属性的对象就是awaiter：
+  + OnCompleted
+  + GetResult
+  + 一个叫做IsCompleted的bool属性
++ 没有接口或者父类来统一这些成员。
++ 其中OnCompleted是INotifyCompletion的一部分
+
+# 如果发生故障
++ 如果之前的任务发生故障，那么当Continuation代码调用awaiter.GetResult()的时候，异常就会被重新抛出。
++ 无需调用GetResult，我们可以直接访问task的Result属性。
++ 但调用GetResult的好处是，如果task发生故障，那么异常就会被直接的抛出，而不是包裹在AggregateException里面，这样的话catch块就会简洁很多了。
+
+# 非泛型task
++ 针对非泛型的task，GetResult()方法有一个返回值，它就是用来重新抛出异常。
+
+# 同步上下文
++ 如果同步上下文出现了，那么OnCompleted会自动捕获它，并将Continuation提交到这个上下文中。这一点在富客户端应用中非常有用，因为它会把Continuation放回到UI线程中。
++ 如果是编写一个库，则不希望出现上述行为，因为开销较大的UI线程切换应该在程序运行离开库的时候只发生一次，而不是出现在方法调用之间。所以，我们可以使用ConfigureAwait方法来避免这种行为(例子configureAwait)
++ 如果没有同步上下文出现，或者你使用的是ConfigureAwait(false)，那么Continuation会运行在先前task的同一个线程上，从而避免不必要的开销
+
+# ContinueWith
++ 另一种附加Continuation的方式就是调用task的ContinueWith方法(例子continueWith)
++ ContinueWith本身返回一个task，它可以用它来附加更多的Continuation。
++ 但是，必须直接处理AggregateException：
+  + 如果task发生故障，需要写额外的代码来把Continuation封装(marshal)到UI应用上。
+  + 在非UI上下文中，若想让Continuation和task执行在同一个线程上，必须指定TaskContinuationOptions.ExecuteSynchronously，否则它将弹回到线程池。
++ ContinueWith对于并行编程来说非常有用。

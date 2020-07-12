@@ -6,17 +6,18 @@ using System.Threading.Tasks;
 namespace AsyncDemo
 {
     /// <summary>
-    /// 例子configureAwait
+    /// 例子prime
     /// </summary>
-    class Program25
+    class Program24
     {
-        static void Main(string[] args)
+        static void Main24(string[] args)
         {
             Task<int> primeNumberTask = Task.Run(() => Enumerable.Range(2, 3000000).Count(n => Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % 1 > 0)));
 
-            primeNumberTask.ContinueWith(task =>
+            var awaiter = primeNumberTask.GetAwaiter();
+            awaiter.OnCompleted(() =>
             {
-                int result = task.Result;
+                int result = awaiter.GetResult();
                 Console.WriteLine(result); // Writes result
             });
 
