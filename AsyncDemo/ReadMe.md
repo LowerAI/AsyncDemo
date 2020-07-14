@@ -308,3 +308,47 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
   + 如果task发生故障，需要写额外的代码来把Continuation封装(marshal)到UI应用上。
   + 在非UI上下文中，若想让Continuation和task执行在同一个线程上，必须指定TaskContinuationOptions.ExecuteSynchronously，否则它将弹回到线程池。
 + ContinueWith对于并行编程来说非常有用。
+
+## TaskCompletionSource
++ Task.Run创建Task
++ 另一种方式就是用TaskCompletionSource来创建Task
++ TaskCompletionSource让你在稍后开始和结束的任意操作中创建Task
+  + 它会为你提供一个可手动执行的“从属”Task
+    + 指示操作何时结束或发生故障
++ 它对IO-Bound类工作比较理想
+  + 可以获得所有Task的好处(传播值、异常、Continuation等)
+  + 不需要在操作时阻塞线程
+
+## 使用TaskCompletionSource
++ 初始化一个实例即可
++ 它有一个Task属性可以返回一个Task
++ 该Task完全由TaskCompletionSource对象控制
+```
+public class TaskCompletionSource<Task>
+{
+    public void SetResult(TResult result);
+    public void SetException(Exception exception);
+    public void SetCanceled();
+
+    public void TrySetResult(TResult result);
+    public void TrySetException(Exception exception);
+    public void TrySetCanceled();
+    public void TrySetCanceled(CancellationToken cancellationToken);
+    ...
+}
+```
++ 调用任意一个方法都会Task给发信号：
+  + 完成、故障、取消
++ 这些方法只能调用一次，如果再次调用：
+  + SetXxx会抛出异常
+  + TryXxx会返回false
+  + (例子tcs)
+  + (例子run)
+
+## TaskCompletionSource的真正魔力
++ 它创建Task，但并不占用线程
++ (例子timer)
++ (例子delay)
+
+## Task,Delay
++ (例子master)
