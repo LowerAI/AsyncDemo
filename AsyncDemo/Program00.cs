@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    internal class Program0
+    internal class Program00
     {
         private static void Main0(string[] args)
         {

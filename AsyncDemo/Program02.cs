@@ -3,11 +3,11 @@ using System.Threading;
 
 namespace AsyncDemo
 {
-    internal class Program3
+    internal class Program02
     {
         private static Thread thread1, thread2;
 
-        public static void Main3()
+        public static void Main2()
         {
             thread1 = new Thread(ThreadProc);
             thread1.Name = "Thread1";
@@ -23,14 +23,7 @@ namespace AsyncDemo
             Console.WriteLine("\nCurrent thread: {0}", Thread.CurrentThread.Name);
             if (Thread.CurrentThread.Name == "Thread1" && thread2.ThreadState != ThreadState.Unstarted)
             {
-                if (thread2.Join(2000))
-                {
-                    Console.WriteLine("Thread2 has termminated.");
-                }
-                else
-                {
-                    Console.WriteLine("The timeout has elapsed and Thread1 will resume.");
-                }
+                thread2.Join();
             }
 
             Thread.Sleep(4000);

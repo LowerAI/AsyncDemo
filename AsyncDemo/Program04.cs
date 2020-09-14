@@ -6,7 +6,7 @@ namespace AsyncDemo
     /// <summary>
     /// 当前线程自身超时
     /// </summary>
-    internal class Program4
+    internal class Program04
     {
         private static TimeSpan waitTime = new TimeSpan(0, 0, 1);
 

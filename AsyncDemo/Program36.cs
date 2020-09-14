@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 namespace AsyncDemo
 {
     /// <summary>
-    /// 本例原本应该是WPF页面
+    /// 
     /// </summary>
-    class Program37
+    class Program36
     {
-        static void Main(string[] args)
+        static void Main36(string[] args)
         {
         }
 
-        //void Go()
-        //{
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        _result.Text += GetPrimesCountAsync(i * 1000000, 1000000) + " primes between " + (i * 1000000) + " and " + ((i + 1) * 1000000 - 1) + Environment.NewLine;
-        //    }
-        //}
+        async void DisplayPriimeCounts()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Console.WriteLine(await GetPrimesCountAsync(i * 1000000 + 2, 1000000));
+            }
+        }
 
         static Task<int> GetPrimesCountAsync(int start, int count)
         {

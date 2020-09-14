@@ -6,7 +6,7 @@ namespace AsyncDemo
     /// <summary>
     /// 静态字段(field)也会在线程间共享数据
     /// </summary>
-    internal class Program9
+    internal class Program09
     {
         private static bool _done = false;
 

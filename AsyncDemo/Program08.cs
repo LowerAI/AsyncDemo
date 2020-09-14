@@ -6,7 +6,7 @@ namespace AsyncDemo
     /// <summary>
     /// 如果多个线程都引用到同一个对象的实例，那么他们就共享了数据
     /// </summary>
-    internal class Program8
+    internal class Program08
     {
         private static void Main8()
         {

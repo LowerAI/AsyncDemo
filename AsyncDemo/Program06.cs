@@ -6,7 +6,7 @@ namespace AsyncDemo
     /// <summary>
     /// ### Local 本地的独立
     /// </summary>
-    internal class Program6
+    internal class Program06
     {
         private static void Main6()
         {
