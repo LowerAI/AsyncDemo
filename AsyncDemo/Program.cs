@@ -1,31 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncDemo
 {
     /// <summary>
-    /// 本例原本应该是WPF页面
+    /// 例子
     /// </summary>
-    class Program37
+    class Program47
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            Console.WriteLine(await GetWebPageAsync("http://oreilly.com"));
         }
 
-        //void Go()
-        //{
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        _result.Text += GetPrimesCountAsync(i * 1000000, 1000000) + " primes between " + (i * 1000000) + " and " + ((i + 1) * 1000000 - 1) + Environment.NewLine;
-        //    }
-        //}
+        static Dictionary<string, string> _cache = new Dictionary<string, string>();
 
-        static Task<int> GetPrimesCountAsync(int start, int count)
+        static async Task<string> GetWebPageAsync(string uri)
         {
-            return Task.Run(() => ParallelEnumerable.Range(start, count).Count(n => Enumerable.Range(2, (int)Math.Sqrt(n) - 1).All(i => n % i > 0)));
+            if (_cache.TryGetValue(uri, out string html))
+                return html;
+            return _cache[uri] = await new WebClient().DownloadStringTaskAsync(uri);
         }
     }
 }

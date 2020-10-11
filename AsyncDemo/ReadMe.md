@@ -530,4 +530,155 @@ while(!线程结束)
 + 循环本身在worker线程上
 + 引入了race condition
 + 若实现取消和过程报告，会使得线程安全问题更容易发生，在方法中添加任何的代码也是同样的效果
-+ 
+
+
+# P20 编写异步函数
+## 编写异步函数
++ 对于任何异步函数，你可以使用Task替代void作为返回类型，让该方法成为更有效的异步(可以进行await)。【例子611】
++ 并不需要在方法体中显示的返回Task。编译器会生成一个Task(当方法完成或发生异常时)，这使得创建异步的调用链非常方便【例子612】
++ 编译器会对返回Task的异步函数进行扩展，使其成为当发送信号或发生故障时使用TaskCompletionSource来创建Task的代码。【大致代码：例子6121】
++ 因此，当返回Task的异步方法结束的时候，执行就会跳回对它进行await的地方。(通过continuation)
+
+
+## 富客户端场景下
++ 富客户端场景下，执行此刻会跳回到UI线程(如果目前不在UI线程的话)。
++ 否则，就在continuation返回的任意线程上继续执行。
++ 这意味着，在异步调用图中向上冒泡的时候，不会发生延迟成本，除非是UI线程启动的第一次“反弹”。
+
+
+## 返回Task<TResult>
++ 如果方法体返回TResult，那么异步方法就可以返回Task<TResult>。【例子6131】
++ 其原理就是给TaskCompletionSource发送的信号带有值，而不是null。【例子6132】
++ 与同步编程很相似，是故意这样设计的。【同步版本：例子6133】
+
+## C#中如何设计异步函数
++ 以同步的方式编写方法
++ 使用异步调用来代替同步调用，并且进行await
++ 除了顶层方法外(UI控件的event handler)，把你方法的返回类型升级为Task或Task<TResult>，这样它们就可以进行await了。
+
+## 编译器能对异步函数生成Task意味着什么？
++ 大多数情况下，你只需要在初始化IO-bound并发的底层方法里显式的初始化TaskCompletionSource，这种情况很少见。
++ 针对初始化compute-bound的并发方法，你可以使用Task.Run来创建Task。
+
+
+## 异步调用图执行
++ 【例子614】
++ 整个执行与之前同步例子中调用图执行的顺序一样，因为我们对每个异步函数的调用都进行了await。
++ 在调用图中创建了一个没有并行和重叠的连续流。
++ 每个await在执行中都创建了一个间隙，在间隙后，程序可以从中断处恢复执行。
+
+## 并行(Parallelism)
++ 不使用await来调用异步函数会导致并行执行的发生。
++ 例如：-button.Click += (sender,args) => Go();
+  + 确实也能妈祖保持UI响应的并发要求。
++ 同样，可以并行跑两个操作：
+```
+var task1 = PrintAnswerToLife();
+var task2 = PrintAnswerToLife();
+await task1;
+await task2;
+```
+
+## 异步Lambda表达式
++ 匿名方法(包括Lambda表达式)，通常使用async也可以变成异步方法。
++ 调用方式也一样。【例子616】
++ 附加event handler的时候也可以使用异步Lambda表达式【例子6161】
+```
+myButton.Click += async (sender, args) =>
+{
+    await Task.Delay(1000);
+    myButton.Content = "Done";
+};
+```
++ 也可以返回Task<TResult>。【例子6162】
+
+# P21 异步和同步上下文(synchornization contexts)
+## 发布异常
++ 富客户端引用通常依赖于集中的异常处理时间来处理UI线程上未捕获的异常。
+  + 例如WPF中的Application.DispatcherUnhandledException
+  + ASP.NET Core中定制ExceptionFilterAttribute也是差不多的效果
++ 其内部原理就是：通过在它们自己的try/catch块来调用UI事件(在ASP.NET Core里就是页面处理方法的管道)
++ 顶层的异步方法会使事情更加复杂。
+```
+async void ButtonClick(object sender, RoutedEventArgs args)
+{
+    await Task.Delay(1000);
+    throw new Exception("Will the be ignored?")
+}
+```
++ 当点击按钮，event handler运行时，在await后，执行会正常的返回到消息循环；1秒钟之后会抛出的异常无法被消息循环中的catch捕获。
++ 为了缓解该问题，AsyncVoidMethodBuilder会捕获未处理的异常(在返回void的异步方法里)，并把它们发布到同步上下文(如果出现的话)，以确保全局处理事件能够触发。
+
+## 注意
++ 编译器只会把上述逻辑应用于返回类型为void的异步方法。
++ 如果ButtonClick的返回类型是Task，那么未处理的异常将导致结果Task出错，然后Task无处可去(导致未观察到的异常)
+
+## 发布异常
++ 一个有趣的细微区别：无论你在await前面还是后面抛出异常，都没有区别。
++ 因此，下例中，异常会被发布到同步上下文(如果出现的话)，而不会发布给调用者。
+  + async void Foo() { throw null; await Task.Delay(1000); }
+  + 如果同步上下文没有出现，异常将会在线程池上传播，从而终止应用程序。
++ 不直接将异常抛回调用者的原因是为了确保可预测性和一致性。
++ 在下例中，不管someCondition是什么值，InvalidOperationException将始终得到和导致Task出错同样的效果
+```
+async Task Foo()
+{
+    if (someCondition) await Task.Delay(100);
+    throw new InvalidOperationException();
+}
+```
++ Iterator也是一样的：`IEnumerable<int> Foo() { throw null; yoeld return 123; }`
+  + 本例中，异常绝不会直接返回给调用者，直到序列被遍历后，才会抛出异常。
+
+## OperationStarted 和 OperationCompleted
++ 如果存在同步上下文，返回void的异步函数也会在进入函数时调用其OperationStarted方法，在函数完成时调用其OperationCompleted方法
++ 如果为了对返回void的异步方法进行单元测试而编写一个自定义的同步上下文，那么重写这两个方法确实有用。
+
+# P22 优化：同步完成
++ 异步函数可以在await之前就返回。【例子】
++ 如果URI在缓存中存在，那么不会有await发生，执行就会返回给调用者，方法会返回一个已经设置信号的Task，这就是同步完成。
++ 当await同步完成的Task时，执行不会返回到调用者，也不同通过continuation跳回。它会立即执行到下个语句。
++ 编译器时通过检查awaiter上的IsCompleted属性来实现这个优化的。也就是说，无论何时，当你await的时候：
+`Console.WriteLine(await GetWebPageAsync("http://oreilly.com"));`
++ 如果时同步完成，编译器会释放可短路continuation的代码。
+```
+var awaiter = GetWebPageAsync().GetWaiter();
+if (awaiter.IsCompleted)
+    Console.WriteLine(awaiter.GetResult());
+else
+    awaiter.OnCompleted(() => Console.WriteLine(awaiter.GetResult()));
+```
++ 编写完全没有await的异步方法也是合法的，但是编译器会发出警告：
+`async Task<string> Foo() { return "abc"; }`
++ 但这类方法可以用于重载virtual/abstract方法。
++ 另外一种可以达到相同结果的方式是：使用Task.FromResult，它会返回一个已经设置好信号的Task。
+`Task<string> Foo() { return Task.FromResult("abc"); }`
++ 如果从UI线程调用，那么GetWebPageAsync方法是隐式线程安全的。您可以连续多次调用它(从而启动多个并发下载)，并且不需要lock来保护缓存。
++ 有一种简单的方法可以实现这一点，而不必求助于lock或信令结构。我们创建一个“futures”(Task<string>)的缓存，而不是字符串的缓存。注意并没有async;
+```
+static Dictonary<string,Task<string>> _cache = new Dictonary<string,Task<string>>();
+
+Task<string> GetWebPageAsync(string uri)
+{
+    if (_cache.TryGetValue(uri, out downloadTask)) return downloadTask;
+    return _cache[uri] = new WebClient().DownloadStringTaskAsync(uri);
+}
+```
+
+## 注意
++ 对一个同步返回的异步方法进行await，仍然会引起一个小的开销(20纳秒左右，2019年的PC)
++ 反过来，跳回到线程池，会引入上下文切换开销，可能是1-2毫秒
++ 而跳回到UI的消息循环，至少是10倍开销(如果UI繁忙，那时间更长)
+
+
+## 不使用同步上下文，使用lock也可以
++ lock的不是下载的过程，lock的是检查缓存的过程(很短暂)
+```
+lock (_cache)
+{
+    if (_cache.Trygetvalue(uri, out var downloadTask))
+        return downloadTask;
+    else
+        return _cache[uri] = new WebClient().DwonloadStrigAsync(uri);
+}
+```
