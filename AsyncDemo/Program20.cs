@@ -9,7 +9,7 @@ namespace AsyncDemo
     /// </summary>
     internal class Program20
     {
-        private static void Main20(string[] args)
+        private static void Main(string[] args)
         {
             Task task = Task.Factory.StartNew(() =>
             {

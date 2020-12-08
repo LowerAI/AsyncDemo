@@ -29,7 +29,7 @@
 + 调用Join方法，就可以等待另一个线程结束
 + 
 
-# 添加超时
+## 添加超时
 + 调用`Join`的时候，可以设置一个超时，用毫秒或者`TimeSpan`都可以。
   + 如果返回`true`，那就是线程结束了；如果超时了，就返回`false`。
 + `Thread.Sleep()`方法会暂停当前的线程，并等待一段时间。
@@ -39,29 +39,29 @@
  + `Thread.Yield()`做同样的事情，但是它只会把执行交给同一处理器上的其他线程。
  + 当前`Sleep`或`Join`的时候，线程处于阻塞的状态。
 
-# 阻塞
+# P3 阻塞
 + 如果线程的执行由于某种原因导致暂定，那么就认为该线程被阻塞了。
   + 例如`Sleep`或者通过`Join`等待其他线程结束。
 + 被阻塞的线程会立即将其处理器的时间片生成给其它线程，从此就不在消耗处理器时间，直到满足其阻塞条件为止。
 + 可以通过`ThreadState`这个属性来判断线程是否处于被阻塞的状态：  
   `bool blocked = (someThread.ThreadState & ThreadState.waitSleepJoin) != 0;`
 
-# ThreadState
+## ThreadState
 + `ThreadState`是一个`flags enum`，通过按位的形式，可以合并数据的选项。
 
-# 解除阻塞 Unlocking
+## 解除阻塞 Unlocking
 + 当遇到下列四种情况的时候，就会解除阻塞：
   + 阻塞条件被满足
   + 操作超时(如果设置超时的话)
   + 通过`Thread.Interrupt()`进行打断
   + 通过`Thread.Abort()`进行中止
 
-# I/O-bound vs Compute-bound(或CPU-bound)
+## I/O-bound vs Compute-bound(或CPU-bound)
 + 一个花费大部分时间等待某事发生的操作称为I/O-bound
   + I/O绑定操作通常涉及输入输出，但这不是硬性要求：`Thread.Sleep()`也被视为`I/O-bound`
 + 相反，一个花费大部分时间执行CPU密集型工作的操作称为`Compute-bound`
 
-# 阻塞 vs 忙等待(自旋) Blocking vs Spinning
+## 阻塞 vs 忙等待(自旋) Blocking vs Spinning
 + I/O-bound 操作的工作方式有两种：
   + 在当前线程上同步的等待
     + Console.ReadLine(),Thread.Sleep(),Thread.Join()...
@@ -82,7 +82,7 @@
     + 因此，在需要处理成百上千个并发操作的大量I/O-bound程序的上下文中，阻塞可能会很麻烦
     + 所以，此类程序需要使用基于回调的方法，在等待时完全撤销其线程。
 
-# 本地 vs 共享的状态 Local vs Shared State
+## 本地 vs 共享的状态 Local vs Shared State
 ### Local 本地的独立
 + CLR为每个线程分配自己的内存栈(Stack)，以便使本地变量保持独立。
 
@@ -91,6 +91,7 @@
 + 被Lambda表达式或匿名委托所捕获的本地变量，会被编译器转化为字段(field)，所以也会被共享。
 + 静态字段(field)也会在线程间共享数据。
 
+# P4 什么是线程安全
 # 线程安全 Thread Safety
 + 后三个例子就引出了线程安全这个关键概念(或者说缺乏线程安全)
 + 上述例子的输出实际上是无法确定的：
@@ -105,7 +106,8 @@
 + 在多线程上下文中，以这种方式避免不确定性的代码就叫做线程安全。
 + Lock不是线程安全的银弹，很容易忘记对字段加锁，lock也会引起一些问题(死锁)
 
-# 向线程传递数据
+# P5 向线程传递数据 & 异常处理
+## 向线程传递数据
 + 如果你想往线程的启动方法里传递参数，最简单的方式是使用lambda表达式，在里面使用参数调用方法。(例子lambda)
 + 甚至可以把整个逻辑都放在lambda里面。(例子multi-lambda)
 + 在C#3.0之前，没有lamdba表达式。可以使用Thread的Start方法传递参数。(例子old-school)
@@ -115,10 +117,10 @@
   public delegate void ParameterizedThreadStart(object obj);
   ···
 
-# Lamdba 表达式与被捕获的变量
+## Lamdba 表达式与被捕获的变量
 + 使用Lamdba表达式可以很简单的给Thread传递参数。但是线程开始后。可能会不小心修改了被捕获的变量，这要多加注意。(例子captured)
 
-# 异常处理
+## 异常处理
 + 创建线程时在作用范围内的try/catch/finally块，在线程开始执行后就与线程无关了。
 + 在WPF、WinForm里，可以订阅全局一场处理事件：
   + Application.DispatcherUnhandledException
@@ -128,7 +130,8 @@
 + 而任何线程有任何未处理的异常都会触发
   AppDomain.CurrentDomain.UnhandledException
 
-# Foreground vs Background Threads 前台和后台线程
+# P6 前台和后台线程
+## Foreground vs Background Threads 前台和后台线程
 + 默认情况下，你手动创建的线程就是前台线程。
 + 只要有前台线程在运行，那么应用程序就会一直处于活动状态。
   + 但是后台线程却不行。
@@ -142,12 +145,12 @@
 
 + 应用程序无法正常退出的一个常见原因是还有活跃的前台线程。
 
-# 线程优先级
+# P7 线程优先级
 + 线程的优先级(Thread的Priority属性)决定了相对于操作系统中其它活跃线程所占的执行时间。
 + 优先级分为：
   + enum ThreadPriority { Lowest,BelowNormal,Normal,AboveNormal,Highest }
 
-# 提升线程优先级
+## 提升线程优先级
 + 提升线程优先级的时候需要特别注意，因为它可能“饿死”其它线程。
 + 如果想让某线程(Thread)的优先级比其他进程(Procee)中的线程(Thread)高，那么就必须提升进程(Process)的优先级
   + 使用System.Diagnostics下的Process类。
@@ -158,7 +161,8 @@
 + 这可以很好地适用于只做少量工作且需要较低延迟的非UI进程。
 + 对于需要大量计算的应用程序(尤其是有UI的应用程序)，提高进程优先级可能会使其他进程饿死，从而降低整个计算机的速度。
 
-# 信号 Signaling
+# P8 信号简介
+## 信号 Signaling
 + 有时，你需要让某线程一直处于等待的状态，直至接收到其它线程发来的通知。这就叫做singaling(发送信号)。
 + 最简单的信号结构就是ManualResetEvent。
   + 调用它上面的WaitOne方法会阻塞当前的线程，直到另一个线程通过调用Set方法来开启信号。
@@ -166,7 +170,8 @@
     + 调用完Set之后，信号会处于“打开”的状态。可以通过调用Reset方法将其再次关闭。
     
 
-# 富客户端应用程序的线程
+# P9 富客户端程序处理耗时操作的一种方法
+## 富客户端应用程序的线程
 + 在WPF，UWP，WinForm等类型的程序中，如果在主线程执行耗时的操作，就会导致整个程序无响应。因为主线程同时还需要处理消息循环，而渲染和鼠标键盘事件处理等工作都是消息循环来执行的。
 + 针对这种耗时的操作，一种流行的做法是启用一个worker线程。
   + 执行完操作后，再更新到UI
@@ -182,7 +187,8 @@
   + 因此，Inovke允许您从方法中获取返回值。
   + 如果不需要返回值，BeginInovke/RunAsync更可取，因为他们不会阻塞调用方，也不会引入思索的可能性
 
-# Synchronization Contexts 同步上下文
+# P10 Synchronization Contexts
+## Synchronization Contexts 同步上下文
 + 在System.ComponmentModel下有一个抽象类：SynchronizationContext，它使得Thread Marshaling得到泛化。
 + 针对移动、桌面(WPF，UWP，WinForm)等富客户端应用的API，他们都定义和实例化了SynchronizationContext的子类
   + 可以通过静态属性SynchronizationContext.Current来获得(当运行在UI线程时)
@@ -190,7 +196,8 @@
   + 调用Post就相当于调用Dispatch或Control上面的BeginInovke方法
   + 还有一个Send方法，它等价于Inovke方法
 
-# 线程池 Thread Pool
+# P11 线程池
+## 线程池 Thread Pool
 + 当开始一个线程的时候，将花费几百微妙来组织似以下的内容：
   + 一个新的局部变量栈
 + 线程池就可以节省这种开销
@@ -198,7 +205,7 @@
 + 线程池对于高效的并行编程和细粒度开发是必不可少的
 + 它允许不被线程启动的开销淹没的情况下运行短期操作
 
-# 使用线程池线程需要注意的几点
+## 使用线程池线程需要注意的几点
 + 不可以设置池线程的Name
 + 池线程都是后台线程
 + 阻塞池线程可使性能降低
@@ -207,21 +214,21 @@
   + 当它释放回池的时候优先级将还原为正常状态
 + 可以通过Thread.CurrentThread.IsThreadPoolThread属性来判断是否
 
-# 进入线程池
+## 进入线程池
 + 最简单的、显示的在线程池运行代码的方式就是使用Task.Run
 ```
 // Task is in System.Threading.Tasks
 Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 ```
 
-# 谁使用了线程池
+## 谁使用了线程池
 + WCF、Remoting、ASP.NET、ASMX Web Services应用服务器
 + System.Timers.Timer、System.Threading.Timer
 + 并行编程结构
 + BackgroundWorker类(现在很多余)
 + 异步委托(现在很多余)
 
-# 线程池中的整洁 CLR的策略
+## 线程池中的整洁 CLR的策略
 + CLR通过对任务排队并对其启动进行节流限制来避免线程池中的超额订阅。
 + 它首先运行尽可能多的并发任务(只要还有CPU核)，然后通过爬山算法调整并发级别，并在特定方向上不断调整工作负载。
   + 如果吞吐量提高，它将继续朝同一方向(否则将反转)。
@@ -230,7 +237,7 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
   + 工作项大多是短时间运行的(<250毫秒，或者理想情况下<100毫秒)，因此CLR有很多机会进行测量和调整。
   + 大部分时间都被阻塞的工作项不会主宰线程池
 
-# Thread的问题
+## Thread的问题
 + 线程(Thread)是用来创建并发(concurrency)的一种低级别工具，它有一些限制，尤其是：
   + 虽然开始线程的时候可以方便的传入数据，但是当Join的时候，很难从线程获得返回值。
     + 可能需要设置一些共享字段。
@@ -239,14 +246,15 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + 很难使用较小的并发(concurrent)来组建大型的并发
 + 导致了对手动同步的更大依赖以及随之而来的问题
 
-# Task Class
+# P12 开始一个Task
+## Task Class
 + Task类可以很好的解决上述问题
 + Task是一个相对高级的抽象：它代表了一个并发操作(concurrent)
   + 该操作可能由Thread支持，或不由Thread支持
 + Task可以使用线程池来减少启动延迟
 + 使用TaskCompletionSource，Task可以利用回调的方式吗，在等待I/O绑定操作时完全避免线程。
 
-# 开始一个Task Task.Run
+## 开始一个Task Task.Run
 + Task类在System.Threading.Tasks命名空间下。
 + 开始一个Task最简单的办法就是使用Task.Run(.NET 4.5, 4.0的时候是Task.Factory.StartNew)这个静态方法：
   + 传入一个Action委托即可(例子task)
@@ -257,20 +265,20 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
     + 可以通过Task的构造函数创建“冷”任务(cold task)，但是很少这样做
   + 可以通过Task的Status属性来跟踪task的执行状态。
 
-# Wait 等待
+## Wait 等待
 + 调用task.Wait方法会进行阻塞直到操作完成
   + 相当于调用thread上的Join方法
   + (例子wait)
 + Wait也可以让你指定一个超时时间和一个取消令牌提前结束等待。
 
-# Long-runnning tasks 长时间运行的任务
+## Long-runnning tasks 长时间运行的任务
 + 默认情况下，CLR在线程池中运行Task，这非常适合短时间运行的Compute-Bound类工作。
 + 针对长时间运行的任务或者阻塞操作(例如前面的例子)，你可以不采用线程池(例子longRunning)
-+ 如果同时运行多个long-running tasks(尤其时其中有处于阻塞状态的)，那么性能会受很大影响，这时有比TaskCreationOptions.LongRunning更好的办法：
-  + 如果任务时IO-Bounds，TaskCompletionSource和异步函数可以让你用回调(Coninuations)代替线程来实现并发。
-  + 如果任务时Compute-Bound，生产者/消费者队列允许你对任务的并发性进行限流，避免把其他线程和进程饿死。
++ 如果同时运行多个long-running tasks(尤其是其中有处于阻塞状态的)，那么性能会受很大影响，这时有比TaskCreationOptions.LongRunning更好的办法：
+  + 如果任务是IO-Bounds，TaskCompletionSource和异步函数可以让你用回调(Coninuations)代替线程来实现并发。
+  + 如果任务是Compute-Bound，生产者/消费者队列允许你对任务的并发性进行限流，避免把其他线程和进程饿死。
 
-# Task的返回值
+# P13 Task的返回值
 + Task有一个泛型子类叫做Task<TResult>，它允许发出一个返回值。
 + 使用Func<TResult>委托或兼容的Lambda表达式来调用Task.Run就可以得到Task<TResult>。
 + 随后，可以通过Result属性来获得返回的结果。
@@ -279,7 +287,7 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + Task<TResult>可以看作是一种所谓的“未来许诺”(future、promise)，在它里面包裹着一个Result，在稍后的时候就会变得可用。
 + 在CTP版本的时候，Task<TResult>实际上叫做Future<TResult>
 
-# Task的异常
+# P14 Task的异常
 + 与Thread不一样，Task可以很方便的传播异常
   + 如果你的task里面抛出了一个未处理的异常(故障)，那么该异常就会重新被抛出给：
     + 调用了wait()的地方
@@ -291,18 +299,18 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
   + 如果IsCanceled为true，那么说明一个OperationCanceledException为该Task抛出了。
   + 如果IsFaulted为true，那就说明另一个类型的异常被抛出了，而Exception属性也将指明错误。
 
-# 异常与“自治”的Task
+## 异常与“自治”的Task
 + 自治的，“设置完就不管了”的Task。就是指不通过调用Wait()方法、Result属性或continuation进行会合的任务。
 + 针对自治的Task，需要像Thread一样，显式的处理异常，避免发生“悄无声息的故障”。
 + 自治Task上未处理的异常为未观察到的异常。
 
-# 未观察到的异常
+## 未观察到的异常
 + 可以通过全局的TaskScheduler.UnobservedTaskException来订阅未观察到的异常。
 + 关于什么是“未观察到的异常”，有一些细微的差别：
   + 使用超时进行等待的Task，如果在超时后发生故障，那么它将会产生一个“未观察到的异常”。
   + 在Task发生故障后，如果访问Task的Exception属性，那么该异常就被认为是“已观察到的”。
 
-# Continuation 继续/延续
+# P15 Continuation 继续/延续
 + 一个Continuation会对Task说：“当你结束的时候，继续再做点其它的事”
 + Continuation通常事通过回调的方式实现的
   + 当操作一结束，就开始执行
@@ -311,7 +319,7 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
       + 它的OnCompleted方法会告诉之前的task，“当你结束/发生故障的时候要执行委托”
     + 可以将Continuation附加到已经结束的task上面，此时Continuation将会被安排立即执行。
 
-# awaiter
+## awaiter
 + 任何可以暴露下列两个方法和一个属性的对象就是awaiter：
   + OnCompleted
   + GetResult
@@ -319,20 +327,20 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
 + 没有接口或者父类来统一这些成员。
 + 其中OnCompleted是INotifyCompletion的一部分
 
-# 如果发生故障
+## 如果发生故障
 + 如果之前的任务发生故障，那么当Continuation代码调用awaiter.GetResult()的时候，异常就会被重新抛出。
 + 无需调用GetResult，我们可以直接访问task的Result属性。
 + 但调用GetResult的好处是，如果task发生故障，那么异常就会被直接的抛出，而不是包裹在AggregateException里面，这样的话catch块就会简洁很多了。
 
-# 非泛型task
+## 非泛型task
 + 针对非泛型的task，GetResult()方法有一个返回值，它就是用来重新抛出异常。
 
-# 同步上下文
+## 同步上下文
 + 如果同步上下文出现了，那么OnCompleted会自动捕获它，并将Continuation提交到这个上下文中。这一点在富客户端应用中非常有用，因为它会把Continuation放回到UI线程中。
 + 如果是编写一个库，则不希望出现上述行为，因为开销较大的UI线程切换应该在程序运行离开库的时候只发生一次，而不是出现在方法调用之间。所以，我们可以使用ConfigureAwait方法来避免这种行为(例子configureAwait)
 + 如果没有同步上下文出现，或者你使用的是ConfigureAwait(false)，那么Continuation会运行在先前task的同一个线程上，从而避免不必要的开销
 
-# ContinueWith
+## ContinueWith
 + 另一种附加Continuation的方式就是调用task的ContinueWith方法(例子continueWith)
 + ContinueWith本身返回一个task，它可以用它来附加更多的Continuation。
 + 但是，必须直接处理AggregateException：
@@ -340,7 +348,7 @@ Task.Run(() => Console.WriteLine("Hello from the thread pool"));
   + 在非UI上下文中，若想让Continuation和task执行在同一个线程上，必须指定TaskContinuationOptions.ExecuteSynchronously，否则它将弹回到线程池。
 + ContinueWith对于并行编程来说非常有用。
 
-## TaskCompletionSource
+# P16 TaskCompletionSource
 + Task.Run创建Task
 + 另一种方式就是用TaskCompletionSource来创建Task
 + TaskCompletionSource让你在稍后开始和结束的任意操作中创建Task

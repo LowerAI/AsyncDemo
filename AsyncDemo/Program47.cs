@@ -13,7 +13,7 @@ namespace AsyncDemo
     /// </summary>
     class Program47
     {
-        static async Task Main(string[] args)
+        static async Task Main47(string[] args)
         {
             Console.WriteLine(await GetWebPageAsync("http://oreilly.com"));
         }
