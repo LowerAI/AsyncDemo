@@ -183,9 +183,9 @@
   + UWP，调用Dispatcher对象上的RunAsync或Inovke。
 + 所有这些方法都接收一个委托。
 + BeginInovke或RunAsync通过将委托排队到UI线程的消息队列来执行工作。
-+ Invoke执行相同的操作，但随后会及进行阻塞，直到UI线程读取并处理消息。
++ Invoke执行相同的操作，但随后会进行阻塞，直到UI线程读取并处理消息。
   + 因此，Inovke允许您从方法中获取返回值。
-  + 如果不需要返回值，BeginInovke/RunAsync更可取，因为他们不会阻塞调用方，也不会引入思索的可能性
+  + 如果不需要返回值，BeginInovke/RunAsync更可取，因为他们不会阻塞调用方，也不会引入死锁的可能性
 
 # P10 Synchronization Contexts
 ## Synchronization Contexts 同步上下文
@@ -198,7 +198,7 @@
 
 # P11 线程池
 ## 线程池 Thread Pool
-+ 当开始一个线程的时候，将花费几百微妙来组织似以下的内容：
++ 当开始一个线程的时候，将花费几百微妙来组织以下的内容：
   + 一个新的局部变量栈
 + 线程池就可以节省这种开销
   + 通过预先创建一个可循环使用线程的池来减少这一开销。
@@ -759,7 +759,7 @@ async Task Foo (CancellationToken cancellationToken)
     }
 }
 ```
-  + 当调用者想取消的时候，它调用CancellationToken上的Cancel方法。这就会把IsCancellationRequested设置为true，脊灰导致短时间后Foo会通过OperationCanceledException引发错误。
+  + 当调用者想取消的时候，它调用CancellationToken上的Cancel方法。这就会把IsCancellationRequested设置为true，即会导致短时间后Foo会通过OperationCanceledException引发错误。
 
 
 ## CancellationToken和CancellationTokenSource
@@ -833,7 +833,6 @@ Action<int> progress = i => Console.WriteLine(i + " %");
 await Foo(progress);
 ```
    + 尽管这段代码可以在Console App中很好的应用，但在富客户端应用中却不理想。因为它是从worker线程报告的进度，可能会导致消费者的线程安全问题。
-
 
 ## IPROGRESS<T> 和 PROGRESS<T>
 + CLR提供了一对类型来解决此问题：
