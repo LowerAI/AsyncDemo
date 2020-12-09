@@ -8,7 +8,7 @@ namespace AsyncDemo
     /// </summary>
     internal class Program17
     {
-        private static void Main17(string[] args)
+        private static void Main(string[] args)
         {
             var signal = new ManualResetEvent(false);
 
