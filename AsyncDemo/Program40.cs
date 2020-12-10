@@ -16,10 +16,11 @@ namespace AsyncDemo
             
         }
 
-        //async Task Go()
+        //async Task PrintAnswerToLife()
         //{
-        //    await PrintAnswerToLife();
-        //    Console.WriteLine("Done");
+        //    await Task.Delay(5000);
+        //    int answer = 21 * 2;
+        //    Console.WriteLine(answer);
         //}
 
         Task PrintAnswerToLife()

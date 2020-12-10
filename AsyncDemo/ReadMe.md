@@ -443,10 +443,10 @@ public class TaskCompletionSource<Task>
     + 富客户端应用中，高级方法可以保留再UI线程和访问控制以及共享状态上，不会出现线程安全问题
 
 ## 语言对异步的支持非常重要
-+ (例子31)
++ (例子Program31)
 + 需要对task的执行序列化
   + 例如Task B依赖于Task A的执行结果
-  + (例子32)为此，必须在continuation内部触发下一次循环
+  + (例子Program32)为此，必须在continuation内部触发下一次循环
 + async和await
   + 对于不想复杂的实现异步非常重要。
 + 命令式循环结构不要和continuation混合在一起，因为它们依赖于当前本地状态。
@@ -497,17 +497,17 @@ awaiter.OnCompleted(() =>
 + 也可以满足下列条件的任意对象
   + 有GetAwaiter方法，它返回一个awaiter(实现了INotifyCompletion.OnCompleted接口)
   + 返回适当类型的GetResult方法
-  + 一个bool类型的IsCompley=ted属性
+  + 一个bool类型的IsCompleted属性
 
 ## 捕获本地状态
-+ 表达式的最牛之处就是它几乎可以出现在任何地方。
++ await表达式的最牛之处就是它几乎可以出现在任何地方。
 + 特别的，在异步方法内，await表达式可以替换任何表达式。
   + 除了lock表达式和unsafe上下文
 + (例子Program36)
 
 ## await之后在哪个线程上执行
 + 在await表达式之后，编译器依赖于continuation(通过awaiter模式)来继续执行
-+ 如果在富客户端应用的UI线程上，同步上写问保证后续是在原线程上执行；
++ 如果在富客户端应用的UI线程上，同步上下文保证后续是在原线程上执行；
 + 否则，就会在task结束的线程上继续执行。
 
 ## UI上的await
@@ -527,12 +527,12 @@ awaiter.OnCompleted(() =>
 + 伪代码：
 ```
 为本线程设置同步上下文(WPF)
-while(!线程结束)
+while(!程序结束)
 {
     等着消息队列发生一些事情
     发生了事情，是哪种消息?
-    键盘/鼠标消息->触发event handler
-    勇虎BeginInvoke/Invoke消息->执行委托
+    键盘/鼠标消息->触发 event handler
+    用户BeginInvoke/Invoke 消息->执行委托
 }
 ```
 
@@ -547,22 +547,22 @@ while(!线程结束)
 
 # P20 编写异步函数
 ## 编写异步函数
-+ 对于任何异步函数，你可以使用Task替代void作为返回类型，让该方法成为更有效的异步(可以进行await)。【例子611】
-+ 并不需要在方法体中显示的返回Task。编译器会生成一个Task(当方法完成或发生异常时)，这使得创建异步的调用链非常方便【例子612】
-+ 编译器会对返回Task的异步函数进行扩展，使其成为当发送信号或发生故障时使用TaskCompletionSource来创建Task的代码。【大致代码：例子6121】
++ 对于任何异步函数，你可以使用Task替代void作为返回类型，让该方法成为更有效的异步(可以进行await)。【例子611-Program38】
++ 并不需要在方法体中显示的返回Task。编译器会生成一个Task(当方法完成或发生异常时)，这使得创建异步的调用链非常方便【例子612-Program39】
++ 编译器会对返回Task的异步函数进行扩展，使其成为当发送信号或发生故障时使用TaskCompletionSource来创建Task的代码。【大致代码：例子6121-Program40】
 + 因此，当返回Task的异步方法结束的时候，执行就会跳回对它进行await的地方。(通过continuation)
 
 
 ## 富客户端场景下
-+ 富客户端场景下，执行此刻会跳回到UI线程(如果目前不在UI线程的话)。
++ 富客户端场景下，执行在此刻会跳回到UI线程(如果目前不在UI线程的话)。
 + 否则，就在continuation返回的任意线程上继续执行。
 + 这意味着，在异步调用图中向上冒泡的时候，不会发生延迟成本，除非是UI线程启动的第一次“反弹”。
 
 
 ## 返回Task<TResult>
-+ 如果方法体返回TResult，那么异步方法就可以返回Task<TResult>。【例子6131】
-+ 其原理就是给TaskCompletionSource发送的信号带有值，而不是null。【例子6132】
-+ 与同步编程很相似，是故意这样设计的。【同步版本：例子6133】
++ 如果方法体返回TResult，那么异步方法就可以返回Task<TResult>。【例子6131-Program41】
++ 其原理就是给TaskCompletionSource发送的信号带有值，而不是null。【例子6132-Program42】
++ 与同步编程很相似，是故意这样设计的。【同步版本：例子6133-Program43】
 
 ## C#中如何设计异步函数
 + 以同步的方式编写方法
@@ -575,7 +575,7 @@ while(!线程结束)
 
 
 ## 异步调用图执行
-+ 【例子614】
++ 【例子614-Program44】
 + 整个执行与之前同步例子中调用图执行的顺序一样，因为我们对每个异步函数的调用都进行了await。
 + 在调用图中创建了一个没有并行和重叠的连续流。
 + 每个await在执行中都创建了一个间隙，在间隙后，程序可以从中断处恢复执行。
@@ -594,7 +594,7 @@ await task2;
 
 ## 异步Lambda表达式
 + 匿名方法(包括Lambda表达式)，通常使用async也可以变成异步方法。
-+ 调用方式也一样。【例子616】
++ 调用方式也一样。【例子616-Program45】
 + 附加event handler的时候也可以使用异步Lambda表达式【例子6161】
 ```
 myButton.Click += async (sender, args) =>
@@ -603,11 +603,11 @@ myButton.Click += async (sender, args) =>
     myButton.Content = "Done";
 };
 ```
-+ 也可以返回Task<TResult>。【例子6162】
++ 也可以返回Task<TResult>。【例子6162-Program46】
 
 # P21 异步和同步上下文(synchornization contexts)
 ## 发布异常
-+ 富客户端引用通常依赖于集中的异常处理时间来处理UI线程上未捕获的异常。
++ 富客户端引用通常依赖于集中的异常处理事件来处理UI线程上未捕获的异常。
   + 例如WPF中的Application.DispatcherUnhandledException
   + ASP.NET Core中定制ExceptionFilterAttribute也是差不多的效果
 + 其内部原理就是：通过在它们自己的try/catch块来调用UI事件(在ASP.NET Core里就是页面处理方法的管道)
@@ -640,7 +640,7 @@ async Task Foo()
     throw new InvalidOperationException();
 }
 ```
-+ Iterator也是一样的：`IEnumerable<int> Foo() { throw null; yoeld return 123; }`
++ Iterator也是一样的：`IEnumerable<int> Foo() { throw null; yield return 123; }`
   + 本例中，异常绝不会直接返回给调用者，直到序列被遍历后，才会抛出异常。
 
 ## OperationStarted 和 OperationCompleted
@@ -648,12 +648,13 @@ async Task Foo()
 + 如果为了对返回void的异步方法进行单元测试而编写一个自定义的同步上下文，那么重写这两个方法确实有用。
 
 # P22 优化：同步完成
-+ 异步函数可以在await之前就返回。【例子】
++ 异步函数可以在await之前就返回。【例子-Program47】
 + 如果URI在缓存中存在，那么不会有await发生，执行就会返回给调用者，方法会返回一个已经设置信号的Task，这就是同步完成。
-+ 当await同步完成的Task时，执行不会返回到调用者，也不同通过continuation跳回。它会立即执行到下个语句。
++ 当await同步完成的Task时，执行不会返回到调用者，也不会通过continuation跳回。它会立即执行到下个语句。
+
 + 编译器时通过检查awaiter上的IsCompleted属性来实现这个优化的。也就是说，无论何时，当你await的时候：
 `Console.WriteLine(await GetWebPageAsync("http://oreilly.com"));`
-+ 如果时同步完成，编译器会释放可短路continuation的代码。
++ 如果是同步完成，编译器会释放可短路continuation的代码。
 ```
 var awaiter = GetWebPageAsync().GetWaiter();
 if (awaiter.IsCompleted)
@@ -661,11 +662,18 @@ if (awaiter.IsCompleted)
 else
     awaiter.OnCompleted(() => Console.WriteLine(awaiter.GetResult()));
 ```
+
+## 注意
++ 对一个同步返回的异步方法进行await，仍然会引起一个小的开销(20纳秒左右，2019年的PC)
++ 反过来，跳回到线程池，会引入上下文切换开销，可能是1-2毫秒
++ 而跳回到UI的消息循环，至少是10倍开销(如果UI繁忙，那时间更长)
+
 + 编写完全没有await的异步方法也是合法的，但是编译器会发出警告：
 `async Task<string> Foo() { return "abc"; }`
 + 但这类方法可以用于重载virtual/abstract方法。
 + 另外一种可以达到相同结果的方式是：使用Task.FromResult，它会返回一个已经设置好信号的Task。
 `Task<string> Foo() { return Task.FromResult("abc"); }`
+
 + 如果从UI线程调用，那么GetWebPageAsync方法是隐式线程安全的。您可以连续多次调用它(从而启动多个并发下载)，并且不需要lock来保护缓存。
 + 有一种简单的方法可以实现这一点，而不必求助于lock或信令结构。我们创建一个“futures”(Task<string>)的缓存，而不是字符串的缓存。注意并没有async;
 ```
@@ -677,12 +685,6 @@ Task<string> GetWebPageAsync(string uri)
     return _cache[uri] = new WebClient().DownloadStringTaskAsync(uri);
 }
 ```
-
-## 注意
-+ 对一个同步返回的异步方法进行await，仍然会引起一个小的开销(20纳秒左右，2019年的PC)
-+ 反过来，跳回到线程池，会引入上下文切换开销，可能是1-2毫秒
-+ 而跳回到UI的消息循环，至少是10倍开销(如果UI繁忙，那时间更长)
-
 
 ## 不使用同步上下文，使用lock也可以
 + lock的不是下载的过程，lock的是检查缓存的过程(很短暂)
@@ -702,6 +704,7 @@ lock (_cache)
 + 优化的一种极端形式是编写无需分配的此类内存的代码；换句话说，这不会实例化任何引用类型，不会给垃圾收集增加负担。
 + 为了支持这种模式，C#引入了ValueTask和ValueTask<T>这两个struct，编译器允许使用它们代替Task和Task<T>
   + `async ValueTask<int> Foo() {...}`
+
 + 如果操作是同步完成的，则await ValueTask<T>是无分配的。
   + `int answer = await Foo(); // (可能是)无分配的`
 + 如果操作不是同步完成的，ValueTask<T>实际上就会创建一个普通的Task<T>(并将await转发给它)
@@ -713,6 +716,7 @@ lock (_cache)
   + 多次await同一个ValueTask<T>
   + 操作没结束的时候就调用.GetAwaiter().GetResult()
 + 如果你需要进行这些操作，那么先调用AsTask方法，操作它返回的Task。
+
 + 避免上述陷阱最简单的办法就是直接await方法调用：
   + `await Foo();`
 + 将ValueTask赋给变量时，就可能引发错误了：
@@ -815,6 +819,7 @@ try { await Foo(cancelSource.Token); }
 catch (OperationCanceledException ex) { Console.WriteLine("Cancelled"); }
 ```
 + CancellationToken这个struct提供了一个Register方法，它可以让你注册一个回调委托，这个委托会在取消时触发。它会返回一个对象，这个对象在取消注册时可以被Dispose掉。
+
 + 编译器的异步函数生成的Task在遇到未处理的OperationCanceledException异常时会自动进入取消状态(IsCanceled返回true，IsFaulted返回false)
 + 使用Task.Run创建的Task也是如此。这里是指向构造函数传递(相同的)CancellationToken。
 + 在异步场景中，故障Task和取消的Task之间的区别并不重要，因为它们在await时都会抛出一个OperationCanceledExeption。但这在高级并行变成场景(特别是条件continuation)中很重要。
@@ -1015,6 +1020,7 @@ static Task<TResult> WithCancellation<TResult>(this Task<TResult> task, Cancella
     return tcs.Task;
 }
 ```
+-
 + 这个组合器功能类似WhenAll，如果一个Task出错，那么其余的Task也立即出错：
 ```
 static Task<TResult> WhenAllOrError<TResult>(params Task<TResult> tasks)
